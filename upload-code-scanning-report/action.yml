@@ -1,13 +1,33 @@
 name: 'Upload code-scanning results'
-description: 'Generates a SARIF report and uploads it to Github'
+description: 'Generates a SARIF report, uploads it to GitHub code scanning, and uploads fuzzing artifacts (coverage_report, lcov.info, findings.txt)'
 runs:
   using: "composite"
   steps:
-    - name: Generate findings report
+    - name: Generate SARIF findings report
       run: cifuzz findings --format=sarif --output=results.sarif
       shell: bash
-        
-    - name: Upload findings to Github code scanning
-      uses: github/codeql-action/upload-sarif@v3
+
+    - name: Upload findings to GitHub code scanning
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: results.sarif
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: cifuzz-coverage
+        path: coverage_report
+        if-no-files-found: warn
+
+    - name: Upload lcov report
+      uses: actions/upload-artifact@v4
+      with:
+        name: cifuzz-coverage-lcov
+        path: lcov.info
+        if-no-files-found: warn
+
+    - name: Upload findings report
+      uses: actions/upload-artifact@v4
+      with:
+        name: cifuzz-findings
+        path: findings.txt
