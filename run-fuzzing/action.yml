@@ -2,13 +2,45 @@ name: 'Run fuzzing'
 description: 'Runs cifuzz for a specified duration (default "10m")'
 inputs:
   duration:
-    default: "10m" 
+    default: "10m"
     type: string
 runs:
   using: "composite"
   steps:
-    - name: run fuzzing
+    - name: Run fuzzing
+      id: fuzzing
       continue-on-error: true
       run: cifuzz run -v --interactive=false --max-fuzzing-duration ${{ inputs.duration }}
       shell: bash
-      
+
+    - name: Generate findings report
+      run: cifuzz findings > findings.txt
+      shell: bash
+
+    - name: Check for findings
+      id: findings_check
+      continue-on-error: true
+      run: cifuzz findings --fail
+      shell: bash
+
+    - name: Generate HTML coverage report
+      continue-on-error: true
+      run: cifuzz coverage --output coverage_report
+      shell: bash
+
+    - name: Generate lcov coverage report
+      continue-on-error: true
+      run: cifuzz coverage --format lcov --output lcov.info
+      shell: bash
+
+    - name: Fail on build errors or findings
+      if: steps.fuzzing.outcome == 'failure' || steps.findings_check.outcome == 'failure'
+      run: |
+        if [ "${{ steps.findings_check.outcome }}" = "failure" ]; then
+          echo "Fuzzing found issues:"
+          cat findings.txt
+        else
+          echo "Fuzzing run failed (possible build error)"
+        fi
+        exit 1
+      shell: bash
