@@ -13,10 +13,6 @@ runs:
       run: cifuzz run -v --interactive=false --max-fuzzing-duration ${{ inputs.duration }}
       shell: bash
 
-    - name: Generate findings report
-      run: cifuzz findings > findings.txt
-      shell: bash
-
     - name: Check for findings
       id: findings_check
       continue-on-error: true
@@ -38,7 +34,7 @@ runs:
       run: |
         if [ "${{ steps.findings_check.outcome }}" = "failure" ]; then
           echo "Fuzzing found issues:"
-          cat findings.txt
+          cifuzz findings
         else
           echo "Fuzzing run failed (possible build error)"
         fi
