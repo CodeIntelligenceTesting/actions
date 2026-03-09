@@ -8,7 +8,7 @@ runs:
       shell: bash
 
     - name: Upload findings to GitHub code scanning
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: results.sarif
 
@@ -30,4 +30,5 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: cifuzz-findings
-        path: findings.txt
+        path: .cifuzz-findings
+        include-hidden-files: true
